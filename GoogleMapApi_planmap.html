@@ -30,7 +30,12 @@
           <div class="d-flex flex-row-reverse ">
             <div class="form-group">
               <p>景點</p>
-              <select id="view" class="form-control" style="width: 200px; height: 200px;" multiple="">
+              <select
+                id="view"
+                class="form-control"
+                style="width: 200px; height: 200px;"
+                multiple=""
+              >
               </select>
             </div>
           </div>
@@ -40,14 +45,15 @@
               <select
                 id="hotel"
                 class="form-control"
-                style="width: 200px; height: 200px;" multiple=""
+                style="width: 200px; height: 200px;"
+                multiple=""
               ></select>
             </div>
           </div>
           <div class="d-flex flex-row-reverse">
-              <button id="create" >
-                規劃路線
-              </button>
+            <button id="create">
+              規劃路線
+            </button>
           </div>
         </dvi>
       </div>
@@ -58,23 +64,70 @@
   <script>
     $(function() {
       var map;
+      var marker = null;
       var center = {
         lat: 24.804256,
         lng: 120.966146
       };
-      var marker;
+
+      var routes = [];
+      var directionsService = new google.maps.DirectionsService();
+      var directionsDisplay = new google.maps.DirectionsRenderer();
       map = new google.maps.Map(document.getElementById("map"), {
-        //建立一個新的 map， 並抓取ID:map
-        center: center, //這裏的center 是上方“地圖出現的起始點”
-        zoom: 15
+        center: center,
+        zoom: 17
+      });
+      directionsDisplay.setMap(map);
+      document.getElementById("create").addEventListener("click", function() {
+        displayRoute(directionsService, directionsDisplay);
       });
 
+      function displayRoute(directionsService, directionsDisplay) {
+        var waypoints = [];
+        var view_Array = document.getElementById("view");
+        for (var i = 0; i < view_Array.length; i++) {
+          if (view_Array.options[i].selected) {
+            waypoints.push({
+              location: view_Array[i].value,
+              stopover: true
+            });
+          }
+        }
+        var hotel_Array = document.getElementById("hotel");
+        for (var i = 0; i < hotel_Array.length; i++) {
+          if (hotel_Array.options[i].selected) {
+            waypoints.push({
+              location: hotel_Array[i].value,
+              stopover: true
+            });
+          }
+        }
+        directionsService.route(
+          {
+            origin: document.getElementById("hotel").value,
+            destination: document.getElementById("view").value,
+            waypoints: waypoints,
+            optimizeWaypoints: true,
+            travelMode: "DRIVING"
+          },
+          function(response, status) {
+            if (status === "OK") {
+              directionsDisplay.setDirections(response);
+            } else {
+              window.alert("Directions request failed due to" + status);
+            }
+          }
+        );
+      }
       $.ajax({
         type: "GET",
         url:
           "http://opendata.hccg.gov.tw/dataset/39ee314b-7ce7-4265-a6b5-b57f42392da8/resource/6a3a5f61-5383-419d-a94c-df710071a51e/download/20180321131425502.json"
       }).done(function(data) {
         for (var item of data) {
+          var option = document.createElement("option");
+          option.innerHTML = item.旅館名稱;
+          document.getElementById("hotel").appendChild(option);
           // console.log(data);
           var marker = new google.maps.Marker({
             position: {
@@ -85,11 +138,7 @@
             icon:
               "http://icons.iconarchive.com/icons/e-young/gur-project/32/map-pointer-icon.png",
             title: item.旅館名稱
-
-            
           });
-          var ht = "<option>" + item.旅館名稱 + "</option>";
-          $("#hotel").append(ht);
         }
       });
       $.ajax({
@@ -98,8 +147,11 @@
           "http://opendata.hccg.gov.tw/dataset/7ea7e303-df62-4fbe-a84f-99bdd724b577/resource/c15a9c5f-f6cb-4da5-b8a6-5e7bc4c9eb08/download/20180501160733080.json"
       }).done(function(data) {
         for (var item of data) {
+            var option = document.createElement("option");
+            option.innerHTML = item.古蹟名稱;
+            document.getElementById("view").appendChild(option);
           var marker = new google.maps.Marker({
-            position: {
+            position: { 
               lat: parseFloat(item.緯度),
               lng: parseFloat(item.經度)
             },
@@ -108,10 +160,9 @@
               "http://icons.iconarchive.com/icons/icons-land/vista-map-markers/48/Map-Marker-Flag-1-Left-Pink-icon.png",
             title: item.古蹟名稱
           });
-          var vw = "<option>" + item.古蹟名稱 + "</option>";
-          $("#view").append(vw);
         }
       });
     });
+    // For each route, display summary informat
   </script>
 </html>
