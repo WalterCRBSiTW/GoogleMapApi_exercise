@@ -1,31 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
     <title>planmap</title>
-</head>
-<body>
-    <div class="container">
-        <div class="row">
-            <div class="col m-3">
-            <h1>玩轉新竹</h1>
-            </div>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col m-3">
+          <h1>玩轉新竹</h1>
         </div>
-        <div class="row">
-            <div class="col">
-                <div id="map" style="width: 1000px; height: 700px;"></div>
-            </div>
-            
+      </div>
+      <div class="row">
+        <div class="col-6">
+          <div
+            id="map"
+            style="width: 800px; height: 700px; position: relative; overflow: hidden;"
+          ></div>
         </div>
+        <dvi class="col">
+          <div class="d-flex flex-row-reverse ">
+            <div class="form-group">
+              <p>景點</p>
+              <select id="view" class="form-control" style="width: 200px; height: 200px;" multiple="">
+              </select>
+            </div>
+          </div>
+          <div class="d-flex flex-row-reverse">
+            <div class="form-group">
+              <p>旅館</p>
+              <select
+                id="hotel"
+                class="form-control"
+                style="width: 200px; height: 200px;" multiple=""
+              ></select>
+            </div>
+          </div>
+          <div class="d-flex flex-row-reverse">
+              <button id="create" >
+                規劃路線
+              </button>
+          </div>
+        </dvi>
+      </div>
     </div>
-</body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8_leVd8LRKxvNf0wUTOpr8J8PP6P5GTI"></script>
-<script>
-    
-</script>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8_leVd8LRKxvNf0wUTOpr8J8PP6P5GTI"></script>
+  <script>
+    $(function() {
+      var map;
+      var center = {
+        lat: 24.804256,
+        lng: 120.966146
+      };
+      var marker;
+      map = new google.maps.Map(document.getElementById("map"), {
+        //建立一個新的 map， 並抓取ID:map
+        center: center, //這裏的center 是上方“地圖出現的起始點”
+        zoom: 15
+      });
+
+      $.ajax({
+        type: "GET",
+        url:
+          "http://opendata.hccg.gov.tw/dataset/39ee314b-7ce7-4265-a6b5-b57f42392da8/resource/6a3a5f61-5383-419d-a94c-df710071a51e/download/20180321131425502.json"
+      }).done(function(data) {
+        for (var item of data) {
+          // console.log(data);
+          var marker = new google.maps.Marker({
+            position: {
+              lat: parseFloat(item.緯度),
+              lng: parseFloat(item.經度)
+            },
+            map: map,
+            icon:
+              "http://icons.iconarchive.com/icons/e-young/gur-project/32/map-pointer-icon.png",
+            title: item.旅館名稱
+
+            
+          });
+          var ht = "<option>" + item.旅館名稱 + "</option>";
+          $("#hotel").append(ht);
+        }
+      });
+      $.ajax({
+        type: "GET",
+        url:
+          "http://opendata.hccg.gov.tw/dataset/7ea7e303-df62-4fbe-a84f-99bdd724b577/resource/c15a9c5f-f6cb-4da5-b8a6-5e7bc4c9eb08/download/20180501160733080.json"
+      }).done(function(data) {
+        for (var item of data) {
+          var marker = new google.maps.Marker({
+            position: {
+              lat: parseFloat(item.緯度),
+              lng: parseFloat(item.經度)
+            },
+            map: map,
+            icon:
+              "http://icons.iconarchive.com/icons/icons-land/vista-map-markers/48/Map-Marker-Flag-1-Left-Pink-icon.png",
+            title: item.古蹟名稱
+          });
+          var vw = "<option>" + item.古蹟名稱 + "</option>";
+          $("#view").append(vw);
+        }
+      });
+    });
+  </script>
 </html>
